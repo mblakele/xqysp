@@ -1,0 +1,719 @@
+<!--
+    : Copyright (c)2011 Michael Blakeley. All Rights Reserved.
+    :
+    : Licensed under the Apache License, Version 2.0 (the "License");
+    : you may not use this file except in compliance with the License.
+    : You may obtain a copy of the License at
+    :
+    : http://www.apache.org/licenses/LICENSE-2.0
+    :
+    : Unless required by applicable law or agreed to in writing, software
+    : distributed under the License is distributed on an "AS IS" BASIS,
+    : WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    : See the License for the specific language governing permissions and
+    : limitations under the License.
+    :
+    : The use of the Apache License does not indicate that this project is
+    : affiliated with the Apache Software Foundation.
+-->
+<!-- cf https://github.com/mblakele/xqut -->
+<suite xmlns="com.blakeley.xqut"
+       xmlns:xs="http://www.w3.org/2001/XMLSchema"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="com.blakeley.xqysp">
+  <environment
+      root="/Users/mblakele/Source/mblakele-xqysp/src/"
+      database-name="Documents" >
+    <import prefix="p" ns="com.blakeley.xqysp" at="xqysp.xqy"/>
+  </environment>
+
+  <unit result="1" note="parse test">1</unit>
+
+  <unit note="empty">
+    <result xsi:type="xs:boolean">1</result>
+    <expr>empty(p:parse(''))</expr>
+  </unit>
+
+  <unit note="whitespace">
+    <result xsi:type="xs:boolean">1</result>
+    <expr>empty(p:parse('    '))</expr>
+  </unit>
+
+  <unit note="Garbage input - unterminated group">
+    <result>
+      <p:root>
+        <p:literal>foo</p:literal>
+        <p:literal>bar</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse("foo (bar")</expr>
+  </unit>
+
+  <unit note="Garbage input - nonsense group">
+    <result>
+      <p:root>
+        <p:literal>foo</p:literal>
+        <p:literal>bar</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse("foo) (bar")</expr>
+  </unit>
+
+  <unit note="Garbage input - overterminated group">
+    <result>
+      <p:root>
+        <p:literal>foo</p:literal>
+        <p:literal>bar</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse("foo) bar")</expr>
+  </unit>
+
+  <unit note="Garbage input - unterminated quote">
+    <result>
+      <p:root>
+        <p:literal>foo</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse("foo)""")</expr>
+  </unit>
+
+  <unit note="Simple search">
+    <result>
+      <p:root>
+        <p:literal>foo</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse("foo")</expr>
+  </unit>
+
+  <unit note="Simple search with wildcards">
+    <result>
+      <p:root>
+        <p:literal>foo?bar*</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse("foo?bar*")</expr>
+  </unit>
+
+  <unit note="Leading wildcard splat">
+    <result>
+      <p:root>
+        <p:literal>*foo</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse("*foo")</expr>
+  </unit>
+
+  <unit note="Leading wildcard single">
+    <result>
+      <p:root>
+        <p:literal>?foo</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse("?foo")</expr>
+  </unit>
+
+  <unit note="Multiple-word search">
+    <result>
+      <p:root>
+        <p:literal>foo</p:literal>
+        <p:literal>bar</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse("foo bar")</expr>
+  </unit>
+
+  <unit note="Multiple-word search">
+    <result>
+      <p:root>
+        <p:literal>foo</p:literal>
+        <p:literal>bar</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse("foo bar")</expr>
+  </unit>
+
+  <unit note="Hyphen-term search">
+    <result>
+      <p:root>
+        <p:literal>foo-bar</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse("foo-bar")</expr>
+  </unit>
+
+  <unit note="Syntax for or-terms search">
+    <result>
+      <p:root>
+        <p:expression type="infix" op="OR">
+          <p:literal>foo</p:literal>
+          <p:literal>bar</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("foo OR bar")</expr>
+  </unit>
+
+  <unit note="Three-term OR query">
+    <result>
+      <p:root>
+        <p:expression type="infix" op="OR">
+          <p:literal>foo</p:literal>
+          <p:literal>bar</p:literal>
+          <p:literal>baz</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("foo OR bar OR baz")</expr>
+  </unit>
+
+  <unit note="a AND b OR c">
+    <!-- result may be unexpected, but the user can add group tokens -->
+    <result>
+      <p:root>
+        <p:expression type="infix" op="OR">
+          <p:expression type="infix" op="AND">
+            <p:literal>foo</p:literal>
+            <p:literal>bar</p:literal>
+          </p:expression>
+          <p:literal>baz</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("foo AND bar OR baz")</expr>
+  </unit>
+
+  <unit note="Alternative syntax for or-terms search">
+    <result>
+      <p:root>
+        <p:expression type="infix" op="|">
+          <p:literal>foo</p:literal>
+          <p:literal>bar</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("foo | bar")</expr>
+  </unit>
+
+  <unit note="Alternative syntax for or-terms search, no whitespace">
+    <result>
+      <p:root>
+        <p:expression type="infix" op="|">
+          <p:literal>foo</p:literal>
+          <p:literal>bar</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("foo|bar")</expr>
+  </unit>
+
+  <unit note="Or-terms with following term">
+    <result>
+      <p:root>
+        <p:expression type="infix" op="|">
+          <p:literal>foo</p:literal>
+          <p:literal>bar</p:literal>
+        </p:expression>
+        <p:literal>baz</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse("foo|bar baz")</expr>
+  </unit>
+
+  <unit note="Term with following OR terms">
+    <result>
+      <p:root>
+        <p:literal>foo</p:literal>
+        <p:expression type="infix" op="|">
+          <p:literal>bar</p:literal>
+          <p:literal>baz</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("foo bar|baz")</expr>
+  </unit>
+
+  <unit note="Mix of implicit and explicit booleans">
+    <result>
+      <p:root>
+        <p:literal>foo</p:literal>
+        <p:expression op="AND" type="infix">
+          <p:literal>bar</p:literal>
+          <p:literal>baz</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("foo bar AND baz")</expr>
+  </unit>
+
+  <unit note="Proximity search">
+    <result>
+      <p:root>
+        <p:expression type="infix" op="NEAR">
+          <p:literal>foo</p:literal>
+          <p:literal>bar</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("foo NEAR bar")</expr>
+  </unit>
+
+  <unit note="Proximity search with distance">
+    <result>
+      <p:root>
+        <p:expression type="infix" op="NEAR/5">
+          <p:literal>foo</p:literal>
+          <p:literal>bar</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("foo NEAR/5 bar")</expr>
+  </unit>
+
+  <unit note="Ordered proximity search">
+    <result>
+      <p:root>
+        <p:expression type="infix" op="ONEAR">
+          <p:literal>foo</p:literal>
+          <p:literal>bar</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("foo ONEAR bar")</expr>
+  </unit>
+
+  <unit note="Ordered proximity search with distance">
+    <result>
+      <p:root>
+        <p:expression type="infix" op="ONEAR/5">
+          <p:literal>foo</p:literal>
+          <p:literal>bar</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("foo ONEAR/5 bar")</expr>
+  </unit>
+
+  <unit note="Not-term search (NOT)">
+    <result>
+      <p:root>
+        <p:literal>foo</p:literal>
+        <p:expression type="prefix" op="NOT">
+          <p:literal>bar</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("foo NOT bar")</expr>
+  </unit>
+
+  <unit note="Not-term search (dash)">
+    <result>
+      <p:root>
+        <p:literal>foo</p:literal>
+        <p:expression type="prefix" op="-">
+          <p:literal>bar</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("foo -bar")</expr>
+  </unit>
+
+  <unit note="NOT with following term">
+    <result>
+      <p:root>
+        <p:expression type="prefix" op="NOT">
+          <p:literal>foo</p:literal>
+        </p:expression>
+        <p:literal>bar</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse("NOT foo bar")</expr>
+  </unit>
+
+  <unit note="Not-phrase search (NOT)">
+    <result>
+      <p:root>
+        <p:expression type="prefix" op="NOT">
+          <p:literal>foo bar</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse('NOT "foo bar"')</expr>
+  </unit>
+
+  <unit note="Not-phrase search (dash)">
+    <result>
+      <p:root>
+        <p:expression type="prefix" op="-">
+          <p:literal>foo bar</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse('-"foo bar"')</expr>
+  </unit>
+
+  <unit note="Not-group search (NOT)">
+    <result>
+      <p:root>
+        <p:expression type="prefix" op="NOT">
+          <p:group>
+          <p:literal>foo</p:literal>
+          <p:literal>bar</p:literal>
+          </p:group>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("NOT (foo bar)")</expr>
+  </unit>
+
+  <unit note="Not-group search (dash)">
+    <result>
+      <p:root>
+        <p:expression type="prefix" op="-">
+          <p:group>
+            <p:literal>foo</p:literal>
+            <p:literal>bar</p:literal>
+          </p:group>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("-(foo bar)")</expr>
+  </unit>
+
+  <unit note="Not-group with optimization (NOT)">
+    <result>
+      <p:root>
+        <p:expression type="prefix" op="NOT">
+          <p:literal>foo bar</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse('NOT ("foo bar")')</expr>
+  </unit>
+
+  <unit note="Not-group and phrase search (NOT)">
+    <result>
+      <p:root>
+        <p:expression type="prefix" op="NOT">
+          <p:group>
+            <p:literal>foo bar</p:literal>
+            <p:literal>baz</p:literal>
+          </p:group>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse('NOT ("foo bar" baz)')</expr>
+  </unit>
+
+  <unit note="Not-group and phrase search (dash)">
+    <result>
+      <p:root>
+        <p:expression type="prefix" op="-">
+          <p:group>
+            <p:literal>foo bar</p:literal>
+            <p:literal>baz</p:literal>
+          </p:group>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse('-("foo bar" baz)')</expr>
+  </unit>
+
+  <unit note="Not-group and phrase search (NOT)">
+    <result>
+      <p:root>
+        <p:expression type="prefix" op="NOT">
+          <p:group>
+            <p:literal>moo</p:literal>
+            <p:literal>foo bar</p:literal>
+          </p:group>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse('NOT (moo "foo bar")')</expr>
+  </unit>
+
+  <unit note="Not-group and phrase search (dash)">
+    <result>
+      <p:root>
+        <p:expression type="prefix" op="-">
+          <p:group>
+            <p:literal>moo</p:literal>
+            <p:literal>foo bar</p:literal>
+          </p:group>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse('-(moo "foo bar")')</expr>
+  </unit>
+
+  <unit note="Not-group and phrase search (NOT)">
+    <result>
+      <p:root>
+        <p:expression type="prefix" op="NOT">
+          <p:group>
+            <p:literal>foo bar</p:literal>
+            <p:literal>moo</p:literal>
+          </p:group>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse('NOT ("foo bar" moo)')</expr>
+  </unit>
+
+  <unit note="Not-group and phrase search (dash)">
+    <result>
+      <p:root>
+        <p:expression type="prefix" op="-">
+          <p:group>
+            <p:literal>foo bar</p:literal>
+            <p:literal>moo</p:literal>
+          </p:group>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse('-("foo bar" moo)')</expr>
+  </unit>
+
+  <unit note="Tricky not-term search">
+    <result>
+      <p:root>
+        <p:literal>foo OR bar</p:literal>
+        <p:expression type="prefix" op="-">
+          <p:literal>baz</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse('"foo OR bar" -baz')</expr>
+  </unit>
+
+  <unit note="Grouping of search terms">
+    <result>
+      <p:root>
+        <p:expression type="infix" op="|">
+          <p:literal>foo</p:literal>
+          <p:literal>bar</p:literal>
+        </p:expression>
+        <p:literal>baz</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse("(foo | bar) baz")</expr>
+  </unit>
+
+  <unit note="Tricky grouping of search terms">
+    <result>
+      <p:root>
+        <p:expression type="infix" op="|">
+          <p:literal>foo</p:literal>
+          <p:group>
+            <p:literal>bar</p:literal>
+            <p:literal>baz</p:literal>
+          </p:group>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("foo | (bar baz)")</expr>
+  </unit>
+
+  <unit note="Larger grouping of search terms">
+    <!-- NB group of one is optimized away -->
+    <result>
+      <p:root>
+        <p:expression type="infix" op="|">
+          <p:literal>foo</p:literal>
+          <p:literal>bar</p:literal>
+        </p:expression>
+        <p:literal>baz</p:literal>
+        <p:literal>buz</p:literal>
+        <p:literal>biz</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse("(foo | bar) baz buz biz")</expr>
+  </unit>
+
+  <unit note="Quoted phrase search">
+    <result>
+      <p:root>
+        <p:expression type="infix" op="OR">
+          <p:literal>foo</p:literal>
+          <p:literal>foo bar</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse('foo OR "foo bar"')</expr>
+  </unit>
+
+  <unit note="Punctuation-sensitive search">
+    <result>
+      <p:root>
+        <p:literal>foo's</p:literal>
+        <p:literal>bar</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse("foo's bar")</expr>
+  </unit>
+
+  <unit note="Reversed quoted phrase search">
+    <result>
+      <p:root>
+        <p:expression type="infix" op="OR">
+          <p:literal>foo bar</p:literal>
+          <p:literal>foo</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse('"foo bar" OR foo')</expr>
+  </unit>
+
+  <unit note="Unterminated quoted phrase search">
+    <result>
+      <p:root>
+        <p:literal>foo bar</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse('"foo bar')</expr>
+  </unit>
+
+  <unit note="Tag search">
+    <result>
+      <p:root>
+        <p:field name="title" op=":">
+          <p:literal>foo</p:literal>
+        </p:field>
+      </p:root>
+    </result>
+    <expr>
+      p:parse("title:foo")
+    </expr>
+  </unit>
+
+  <unit note="Tag search plus word search">
+    <result>
+      <p:root>
+        <p:literal>foo</p:literal>
+        <p:field name="title" op=":">
+          <p:literal>bar</p:literal>
+        </p:field>
+      </p:root>
+    </result>
+    <expr>
+      p:parse("foo title:bar")
+    </expr>
+  </unit>
+
+  <unit note="Tag search - existence">
+    <result>
+      <p:root>
+        <p:field name="title" op=":"/>
+      </p:root>
+    </result>
+    <expr>
+      p:parse("title:")
+    </expr>
+  </unit>
+
+  <unit note="Tag search with quoted term">
+    <result>
+      <p:root>
+        <p:field name="title" op=":">
+          <p:literal>foo bar</p:literal>
+        </p:field>
+      </p:root>
+    </result>
+    <expr>
+      p:parse('title:"foo bar"')
+    </expr>
+  </unit>
+
+  <unit note="Tag value search">
+    <result>
+      <p:root>
+        <p:field name="heading" op="=">
+          <p:literal>foo</p:literal>
+        </p:field>
+        <p:field name="title" op="=">
+          <p:literal>bar</p:literal>
+        </p:field>
+      </p:root>
+    </result>
+    <expr>
+      p:parse("heading=foo title=bar")
+    </expr>
+  </unit>
+
+  <unit note="Tag value search with quoted operator">
+    <result>
+      <p:root>
+        <p:field name="title" op="=">
+          <p:literal>foo OR bar</p:literal>
+        </p:field>
+      </p:root>
+    </result>
+    <expr>
+      p:parse('title="foo OR bar"')
+    </expr>
+  </unit>
+
+  <unit note="Tag search with booleans">
+    <result>
+      <p:root>
+        <p:literal>foo</p:literal>
+        <p:expression op="OR" type="infix">
+          <p:field name="title" op=":">
+            <p:literal>bar</p:literal>
+          </p:field>
+          <p:field name="title" op=":">
+            <p:literal>baz</p:literal>
+          </p:field>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("foo (title:bar OR title:baz)")</expr>
+  </unit>
+
+  <unit note="Tag search with quoted punctuation">
+    <result>
+      <p:root>
+        <p:literal>foo</p:literal>
+        <p:field name="title" op=":">
+          <p:literal>http://bar.com/baz?foo=bar&amp;baz</p:literal>
+        </p:field>
+      </p:root>
+    </result>
+    <expr>
+      p:parse('foo title:"http://bar.com/baz?foo=bar&amp;amp;baz"')
+    </expr>
+  </unit>
+
+  <unit note="field with nested group">
+    <result>
+      <p:root>
+        <p:field name="FOO_BAR" op=":">
+          <p:expression op="OR" type="infix">
+            <p:literal>a</p:literal>
+            <p:literal>b</p:literal>
+          </p:expression>
+        </p:field>
+      </p:root>
+    </result>
+    <expr>
+      p:parse('FOO_BAR:((a) OR b)')
+    </expr>
+  </unit>
+
+  <unit note="field range query">
+    <result>
+      <p:root>
+        <p:field name="year" op="&gt;">
+          <p:literal>2007</p:literal>
+        </p:field>
+        <p:field name="year" op="&lt;=">
+          <p:literal>2009</p:literal>
+        </p:field>
+      </p:root>
+    </result>
+    <expr>p:parse('year &gt;= 2007 AND year &lt;= 2009')</expr>
+  </unit>
+
+</suite>
