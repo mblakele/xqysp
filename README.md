@@ -37,9 +37,9 @@ Most of the tasks that used to go into lib-parser-custom.xqy
 can now be implemented without changing the parser itself.
 To make it easier to get started, though,
 there is some sample XQuery to generate a query from an AST in
-[query-eval.xqy](https://raw.github.com/mblakele/xqysp/master/src/query-eval.xqy)
+[query-eval.xqy](https://github.com/mblakele/xqysp/blob/master/src/query-eval.xqy)
 and there is a test case in
-[xqysp.xml](https://raw.github.com/mblakele/xqysp/master/test/xqysp.xml)
+[xqysp.xml](https://github.com/mblakele/xqysp/blob/master/test/xqysp.xml)
 
 If the syntax isn't exactly what you need,
 this could make a nice template for your own search parser.
