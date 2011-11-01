@@ -505,6 +505,7 @@ as element()*
     else p:expr(p:next(), p:next(), $halt))
 };
 
+(: public entry point :)
 declare function p:parse($str as xs:string)
 as element()?
 {

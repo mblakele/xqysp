@@ -23,8 +23,9 @@
        xmlns:p="com.blakeley.xqysp">
   <environment
       root="/Users/mblakele/Source/mblakele-xqysp/src/"
-      database-name="Documents" >
+      database-name="Documents">
     <import prefix="p" ns="com.blakeley.xqysp" at="xqysp.xqy"/>
+    <import prefix="qe" ns="com.blakeley.xqysp.query-eval" at="query-eval.xqy"/>
   </environment>
 
   <unit result="1" note="parse test">1</unit>
@@ -716,6 +717,24 @@
       </p:root>
     </result>
     <expr>p:parse('year &gt; 2007 AND year &lt;= 2009')</expr>
+  </unit>
+
+  <unit note="field range query to cts:query">
+    <result>
+      <cts:and-query xmlns:cts="http://marklogic.com/cts" xmlns="">
+        <cts:element-range-query operator="&gt;=">
+          <cts:element>year</cts:element>
+          <cts:value xsi:type="xs:string">2007</cts:value>
+          <cts:option>collation=http://marklogic.com/collation/</cts:option>
+        </cts:element-range-query>
+        <cts:element-range-query operator="&lt;=">
+          <cts:element>year</cts:element>
+          <cts:value xsi:type="xs:string">2009</cts:value>
+          <cts:option>collation=http://marklogic.com/collation/</cts:option>
+        </cts:element-range-query>
+      </cts:and-query>
+    </result>
+    <expr>document { qe:parse('year &gt;= 2007 AND year &lt;= 2009') }/*</expr>
   </unit>
 
 </suite>
