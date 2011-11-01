@@ -705,15 +705,17 @@
   <unit note="field range query">
     <result>
       <p:root>
-        <p:field name="year" op="&gt;">
-          <p:literal>2007</p:literal>
-        </p:field>
-        <p:field name="year" op="&lt;=">
-          <p:literal>2009</p:literal>
-        </p:field>
+        <p:expression op="AND" type="infix">
+          <p:field name="year" op="&gt;">
+            <p:literal>2007</p:literal>
+          </p:field>
+          <p:field name="year" op="&lt;=">
+            <p:literal>2009</p:literal>
+          </p:field>
+        </p:expression>
       </p:root>
     </result>
-    <expr>p:parse('year &gt;= 2007 AND year &lt;= 2009')</expr>
+    <expr>p:parse('year &gt; 2007 AND year &lt;= 2009')</expr>
   </unit>
 
 </suite>
