@@ -66,7 +66,7 @@ as cts:query?
   else cts:element-word-query($qnames, $list)
 };
 
-declare private function qe:eval($n as element())
+declare function qe:eval($n as element())
 as cts:query?
 {
   (: walk the AST, transforming AST XML into cts:query items :)
@@ -92,8 +92,7 @@ as cts:query?
 (: public entry point :)
 declare function qe:parse($qs as xs:string?) as cts:query?
 {
-  qe:eval(
-    p:parse($qs))
+  qe:eval(p:parse($qs))
 };
 
 (: query-eval.xqy :)
