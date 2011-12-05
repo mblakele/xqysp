@@ -39,7 +39,9 @@ To make it easier to get started, though,
 there is some sample XQuery to generate a query from an AST in
 [query-eval.xqy](https://github.com/mblakele/xqysp/blob/master/src/query-eval.xqy)
 and there is a test case in
-[xqysp.xml](https://github.com/mblakele/xqysp/blob/master/test/xqysp.xml)
+[xqysp.xml](https://github.com/mblakele/xqysp/blob/master/test/xqysp.xml).
+The `query-eval.xqy` code is provided as a simple example:
+copy and modify it as needed for your application.
 
 If the syntax isn't exactly what you need,
 this could make a nice template for your own search parser.
