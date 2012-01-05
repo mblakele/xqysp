@@ -752,4 +752,23 @@
     <expr>p:parse('(A (B)) OR C')</expr>
   </unit>
 
+  <unit note="complex nested group 2">
+    <result>
+      <p:root>
+        <p:expression op="OR" type="infix">
+          <p:literal>alpha</p:literal>
+          <p:group>
+            <p:literal>beta</p:literal>
+            <p:field name="X" op="=">
+              <p:literal>gamma</p:literal>
+            </p:field>
+          </p:group>
+          <p:literal>delta</p:literal>
+        </p:expression>
+        <p:literal>fubar</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse('(alpha OR (beta X=(gamma)) OR (delta)) fubar')</expr>
+  </unit>
+
 </suite>

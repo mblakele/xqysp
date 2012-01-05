@@ -389,7 +389,7 @@ as element()?
     'prefix', $tok, p:group($next, p:next()))
   (: start of group :)
   else if ($tok eq $TOK-GROUP-START) then p:maybe-wrap(
-    'group', (p:expr($next, p:next(), $TOK-GROUP-END), p:skip()))
+    'group', p:expr($next, p:next(), $TOK-GROUP-END))
   (: just a term after all :)
   else p:term($tok, $next)
 };
@@ -440,7 +440,6 @@ as element()?
       p:group(p:next(), p:next())),
     p:next(), p:next())
   (: not an infix expression, and stack size should be 1 :)
-  else if ($tok eq $TOK-GROUP-START) then ($stack, p:rewind(1))
   else ($stack, p:rewind(2))
 };
 
