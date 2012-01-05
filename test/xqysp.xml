@@ -737,4 +737,19 @@
     <expr>document { qe:parse('year &gt;= 2007 AND year &lt;= 2009') }/*</expr>
   </unit>
 
+  <unit note="complex nested group">
+    <result>
+      <p:root>
+        <p:expression op="OR" type="infix">
+          <p:group>
+            <p:literal>A</p:literal>
+            <p:literal>B</p:literal>
+          </p:group>
+          <p:literal>C</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse('(A (B)) OR C')</expr>
+  </unit>
+
 </suite>

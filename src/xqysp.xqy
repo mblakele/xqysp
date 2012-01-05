@@ -2,7 +2,7 @@ xquery version "1.0-ml";
 (:
  : xqysp.xqy
  :
- : Copyright (c) 2011 Michael Blakeley. All Rights Reserved.
+ : Copyright (c) 2011-2012 Michael Blakeley. All Rights Reserved.
  :
  : Licensed under the Apache License, Version 2.0 (the "License");
  : you may not use this file except in compliance with the License.
@@ -199,7 +199,8 @@ declare private function p:maybe-wrap(
 as element()*
 {
   if (not($DEBUG)) then () else p:debug-state(
-    ('maybe-wrap:', $name, xdmp:describe($list))),
+    ('maybe-wrap:', $name, $min,
+      xdmp:describe($list), xdmp:describe($prepend))),
   if (count($list) lt $min
     and not($list instance of xs:string)) then $list
   else element { $name } { $prepend, $list }
@@ -398,6 +399,9 @@ declare private function p:infix-op(
   $next as cts:token?)
 as cts:token
 {
+  if (not($DEBUG)) then () else p:debug-state(
+    ('infix-op:', $op, 'next', $next))
+  ,
   (: check for operator joins, eg NEAR/5 :)
   if ($next = $TOKS-OP-JOIN) then cts:token(concat($op, $next, p:next()))
   else ($op, p:rewind())
@@ -415,6 +419,29 @@ as element()?
     attribute op { $op },
     attribute type { 'infix' },
     $stack}
+};
+
+declare private function p:infix-empty-op(
+  $stack as element()*,
+  $tok as cts:token?,
+  $next as cts:token?)
+as element()?
+{
+  if (not($DEBUG)) then () else p:debug-state(
+    ('infix-empty-op:',
+      'stack', count($stack), 'tok', $tok, 'next', $next))
+  ,
+  if ($tok = $TOKS-INFIX) then p:infix(
+    p:infix-op($tok, $next),
+    ($stack,
+      if (not($DEBUG)) then () else p:debug(
+        ('infix: empty op, found', $tok)),
+      (: append the next group or term :)
+      p:group(p:next(), p:next())),
+    p:next(), p:next())
+  (: not an infix expression, and stack size should be 1 :)
+  else if ($tok eq $TOK-GROUP-START) then ($stack, p:rewind(1))
+  else ($stack, p:rewind(2))
 };
 
 declare private function p:infix(
@@ -447,17 +474,7 @@ as element()?
       p:group($tok, $next)),
     p:next(), p:next())
   (: now we have at least one group or term - do we have an operator yet? :)
-  else if (empty($op)) then (
-    if ($tok = $TOKS-INFIX) then p:infix(
-      p:infix-op($tok, $next),
-      ($stack,
-        if (not($DEBUG)) then () else p:debug(
-          ('infix: empty op, found', $tok)),
-        (: append the next group or term :)
-        p:group(p:next(), p:next())),
-      p:next(), p:next())
-    (: not an infix expression, and stack size should be 1 :)
-    else ($stack, p:rewind(2)))
+  else if (empty($op)) then p:infix-empty-op($stack, $tok, $next)
   (: with $op, gather next group or term to continue infix expression :)
   else if ($tok = $TOKS-INFIX) then (
     if ($tok eq $op) then p:infix(
