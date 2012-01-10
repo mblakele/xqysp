@@ -152,6 +152,7 @@ declare private function p:has-next() as xs:boolean
   $X le $TOKS-COUNT
 };
 
+(: TODO reimplement next without skip and peek? :)
 declare private function p:next($n as xs:integer) as cts:token*
 {
   p:peek($n),
@@ -184,7 +185,8 @@ declare private function p:skip() as cts:token? { p:skip(1) };
 declare private function p:next-until($tok as cts:token?, $halt as cts:token+)
 as cts:token*
 {
-  if (not($DEBUG)) then () else p:debug-state(('next-until', $tok, $halt)),
+  if (not($DEBUG)) then () else p:debug-state(
+    ('next-until: tok', $tok, 'halt', $halt)),
   if (empty($tok)) then ()
   else if ($tok = $halt) then p:rewind(1)
   else ($tok, p:next-until(p:next(), $halt))
@@ -260,10 +262,10 @@ as xs:string?
     p:word($next, p:next()))
   else if (empty($next)) then $tok
   else if ($tok = $TOKS-WILDCARD or $next = $TOKS-WORD-JOIN) then string-join(
-    ($tok, $next,
+    ($tok,
       if (not($DEBUG)) then () else p:debug-state('word: next-until'),
       p:next-until(
-        p:next(),
+        $next,
         ($TOKS-FIELD, $TOK-GROUP-START, $TOK-GROUP-END,
           $TOK-QUOTE, $TOK-SPACE))),
     '')

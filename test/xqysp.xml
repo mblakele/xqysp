@@ -771,4 +771,15 @@
     <expr>p:parse('(alpha OR (beta X=(gamma)) OR (delta)) fubar')</expr>
   </unit>
 
+  <unit note="grouped field with wildcard">
+    <result>
+      <root xmlns="com.blakeley.xqysp">
+        <field name="X" op="=">
+          <literal>*</literal>
+        </field>
+      </root>
+    </result>
+    <expr>p:parse('(X=*)')</expr>
+  </unit>
+
 </suite>
