@@ -37,7 +37,7 @@ declare default element namespace "com.blakeley.xqysp";
  : infixOp ::= "*" | "OR" | "|" | "AND"
  : term ::= prefixOp? (field fieldOp)? (group | literal)
  : field ::= (letter | "_")+
- : fieldOp ::= [":" | "=" | ">" | ">=" | "<" | "<="]
+ : fieldOp ::= [":" | "=" | ">" | ">=" | "<" | "<=" | "!" | "!="]
  : literal ::= word | quoted_words
  : quoted_words ::= '"' word (" " word)* '"'
  : word ::= (letter | digit | "_")+
@@ -78,12 +78,14 @@ declare variable $TOK-SPACE := cts:space(' ');
 declare variable $TOK-UNDERSCORE := cts:punctuation('_');
 
 declare variable $TOKS-FIELD := (
-  cts:punctuation(':'), cts:punctuation('='), $TOKS-INEQ);
+  cts:punctuation(':'), cts:punctuation('='),
+  $TOKS-INEQ);
 (: for range query terms - inequality :)
 declare variable $TOKS-INEQ := (
-  cts:punctuation('>'), cts:punctuation('<'));
+   cts:punctuation('!'), cts:punctuation('>'), cts:punctuation('<'));
 declare variable $TOKS-INEQ-VALID := (
-  $TOKS-INEQ, cts:punctuation('>='), cts:punctuation('<=')) ;
+  $TOKS-INEQ,
+  cts:punctuation('!='), cts:punctuation('>='), cts:punctuation('<=')) ;
 declare variable $TOKS-INFIX := ($TOK-AND, $TOK-NEAR, $TOK-ONEAR, $TOKS-OR);
 declare variable $TOKS-OP-JOIN := (cts:punctuation('/'));
 declare variable $TOKS-OR := (cts:punctuation('|'), cts:word('OR'));

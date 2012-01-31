@@ -28,7 +28,7 @@
     <import prefix="qe" ns="com.blakeley.xqysp.query-eval" at="query-eval.xqy"/>
   </environment>
 
-  <unit result="1" note="parse test">1</unit>
+  <unit result="" note="parse test">''</unit>
 
   <unit note="empty">
     <result xsi:type="xs:boolean">1</result>
@@ -717,6 +717,17 @@
       </p:root>
     </result>
     <expr>p:parse('year &gt; 2007 AND year &lt;= 2009')</expr>
+  </unit>
+
+  <unit note="field != query">
+    <result>
+      <p:root>
+        <p:field name="X" op="!=">
+          <p:literal>Y</p:literal>
+        </p:field>
+      </p:root>
+    </result>
+    <expr>p:parse('X != Y')</expr>
   </unit>
 
   <unit note="field range query to cts:query">

@@ -19,7 +19,7 @@ Here is a rough cut at the BNF
     infixOp ::= "*" | "OR" | "|" | "AND"
     term ::= prefixOp? (field fieldOp)? (group | literal)
     field ::= (letter | "_")+
-    fieldOp ::= [":" | "=" | ">" | ">=" | "<" | "<="]
+    fieldOp ::= [":" | "=" | ">" | ">=" | "<" | "<=" | "!" | "!="]
     literal ::= word | quoted_words
     quoted_words ::= '"' word (" " word)* '"'
     word ::= (letter | digit | "_")+
