@@ -28,7 +28,7 @@
     <import prefix="qe" ns="com.blakeley.xqysp.query-eval" at="query-eval.xqy"/>
   </environment>
 
-  <unit result="" note="parse test">''</unit>
+  <unit result="" note="parse test" fatal="1">''</unit>
 
   <unit note="empty">
     <result xsi:type="xs:boolean">1</result>
@@ -543,6 +543,25 @@
       </p:root>
     </result>
     <expr>p:parse('foo OR "foo bar"')</expr>
+  </unit>
+
+  <unit note="Quoted punctuation">
+    <result>
+      <p:root>
+        <p:literal>,</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse('","')</expr>
+  </unit>
+
+  <unit note="Quoted words with punctuation">
+    <result>
+      <root xmlns="com.blakeley.xqysp">
+        <literal>foo</literal>
+        <literal>bar</literal>
+      </root>
+    </result>
+    <expr>p:parse('"foo" , "bar"')</expr>
   </unit>
 
   <unit note="Punctuation-sensitive search">

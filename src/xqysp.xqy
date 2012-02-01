@@ -287,11 +287,9 @@ as xs:string?
   if (not($tok = $TOK-QUOTE)) then p:error(
     'UNEXPECTED', ('not a quote', $tok))
   else if (empty($next) or $next eq $TOK-QUOTE) then ()
-  else if ($next = $TOKS-WORD-JOIN
-    or $next instance of cts:word) then string-join(
+  else string-join(
     ($next, p:next-until(p:next(), $TOK-QUOTE), p:skip()),
     '')
-  else p:error('UNEXPECTED')
 };
 
 declare private function p:literal(
