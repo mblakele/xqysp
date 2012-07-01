@@ -318,6 +318,21 @@ as xs:string
   else $op
 };
 
+declare private function p:field2(
+  $literal as element(),
+  $op as xs:string,
+  $next as cts:token?)
+as element()?
+{
+  element field {
+    attribute name { $literal },
+    attribute op { $op },
+    p:maybe-ungroup(
+      if ($op eq '') then p:error('UNEXPECTED')
+      else if (string-length($op) eq 1) then p:group($next, p:next())
+      else p:group(p:next(), p:next())) }
+};
+
 declare private function p:field(
   $literal as element(),
   $tok as cts:token?,
@@ -334,11 +349,9 @@ as element()?
     if ($next = $TOKS-FIELD) then p:field($literal, $next, p:next())
     else ($literal, p:rewind()))
   (: whitespace $next is ok :)
-  (: TODO detect and encode inequality ops - works without spaces now :)
-  else if ($tok = $TOKS-FIELD) then element field {
-    attribute name { $literal },
-    attribute op { p:field-op($tok, $next) },
-    p:maybe-ungroup(p:group($next, p:next())) }
+  (: detect and encode inequality ops :)
+  else if ($tok = $TOKS-FIELD) then p:field2(
+    $literal, p:field-op($tok, $next), $next)
   (: rewind at group end :)
   else if ($tok eq $TOK-GROUP-END) then ($literal, p:rewind(2))
   else ($literal, p:rewind(2))

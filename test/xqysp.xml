@@ -812,4 +812,15 @@
     <expr>p:parse('(X=*)')</expr>
   </unit>
 
+  <unit note="inequality with quoted literal">
+    <result>
+      <root xmlns="com.blakeley.xqysp">
+        <field name="X" op="&lt;=">
+          <literal>foo bar</literal>
+        </field>
+      </root>
+    </result>
+    <expr>p:parse('X&lt;="foo bar")')</expr>
+  </unit>
+
 </suite>
