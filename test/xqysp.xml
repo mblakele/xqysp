@@ -296,6 +296,21 @@
     <expr>p:parse("foo ONEAR/5 bar")</expr>
   </unit>
 
+  <unit note="ordered proximity search A B C with distance">
+    <result>
+      <root xmlns="com.blakeley.xqysp">
+        <expression op="ONEAR/1" type="infix">
+          <expression op="ONEAR/1" type="infix">
+            <literal>dog</literal>
+            <literal>cat</literal>
+          </expression>
+          <literal>rat</literal>
+        </expression>
+      </root>
+    </result>
+    <expr>document { p:parse("dog ONEAR/1 cat ONEAR/1 rat)") }/*</expr>
+  </unit>
+
   <unit note="Not-term search (NOT)">
     <result>
       <p:root>
@@ -821,6 +836,74 @@
       </root>
     </result>
     <expr>p:parse('X&lt;="foo bar")')</expr>
+  </unit>
+
+  <unit note="literal with weight">
+    <result>
+      <root xmlns="com.blakeley.xqysp">
+        <literal weight="3">foo</literal>
+      </root>
+    </result>
+    <expr>p:parse('foo^3')</expr>
+  </unit>
+
+  <unit note="field with weight">
+    <result>
+      <root xmlns="com.blakeley.xqysp">
+        <field name="foo" op=":">
+          <literal weight="3">bar</literal>
+        </field>
+      </root>
+    </result>
+    <expr>p:parse('foo:bar^3')</expr>
+  </unit>
+
+  <unit note="qe literal with weight">
+    <result>
+      <cts:word-query
+          weight="3"
+          xmlns:cts="http://marklogic.com/cts" xmlns="">
+        <cts:text xml:lang="en">foo</cts:text>
+      </cts:word-query>
+    </result>
+    <expr>document { qe:parse('foo^3') }/*</expr>
+  </unit>
+
+  <unit note="qe word field with weight">
+    <result>
+      <cts:element-word-query
+          weight="3"
+          xmlns:cts="http://marklogic.com/cts" xmlns="">
+        <cts:element>foo</cts:element>
+        <cts:text xml:lang="en">bar</cts:text>
+      </cts:element-word-query>
+    </result>
+    <expr>document { qe:parse('foo:bar^3') }/*</expr>
+  </unit>
+
+  <unit note="qe value field with weight">
+    <result>
+      <cts:element-value-query
+          weight="3"
+          xmlns:cts="http://marklogic.com/cts" xmlns="">
+        <cts:element>foo</cts:element>
+        <cts:text xml:lang="en">bar</cts:text>
+      </cts:element-value-query>
+    </result>
+    <expr>document { qe:parse('foo=bar^3') }/*</expr>
+  </unit>
+
+  <unit note="qe range field with weight">
+    <result>
+      <cts:element-range-query
+          operator="&gt;" weight="3"
+          xmlns:cts="http://marklogic.com/cts" xmlns="">
+        <cts:element>foo</cts:element>
+        <cts:value xsi:type="xs:string">17</cts:value>
+        <cts:option>collation=http://marklogic.com/collation/</cts:option>
+      </cts:element-range-query>
+    </result>
+    <expr>document { qe:parse('foo &gt; 17^3') }/*</expr>
   </unit>
 
 </suite>

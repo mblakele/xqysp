@@ -38,9 +38,10 @@ declare default element namespace "com.blakeley.xqysp";
  : term ::= prefixOp? (field fieldOp)? (group | literal)
  : field ::= (letter | "_")+
  : fieldOp ::= [":" | "=" | ">" | ">=" | "<" | "<=" | "!" | "!="]
- : literal ::= word | quoted_words
+ : literal ::= (word | quoted_words) weight?
  : quoted_words ::= '"' word (" " word)* '"'
  : word ::= (letter | digit | "_")+
+ : weight ::= ^digit+
  : number ::= digit+
  : letter ::= [A-Za-z]
  : digit ::= [0-9]
@@ -66,6 +67,7 @@ declare private variable $X as xs:integer := -1;
 
 declare variable $TOK-AND := cts:word('AND');
 declare variable $TOK-APOS := cts:punctuation("'");
+declare variable $TOK-CARAT := cts:punctuation('^');
 declare variable $TOK-GROUP-START := cts:punctuation('(');
 declare variable $TOK-GROUP-END := cts:punctuation(')');
 declare variable $TOK-HYPHEN := cts:punctuation('-');
@@ -90,8 +92,8 @@ declare variable $TOKS-INFIX := ($TOK-AND, $TOK-NEAR, $TOK-ONEAR, $TOKS-OR);
 declare variable $TOKS-OP-JOIN := (cts:punctuation('/'));
 declare variable $TOKS-OR := (cts:punctuation('|'), cts:word('OR'));
 declare variable $TOKS-PREFIX := (
-  $TOK-NOT, cts:punctuation('-'),
-  cts:punctuation('+'), cts:punctuation('~'));
+  $TOK-NOT, $TOK-HYPHEN, cts:punctuation('+'), cts:punctuation('~'));
+declare variable $TOKS-WEIGHT := ($TOK-CARAT) ;
 declare variable $TOKS-WILDCARD := (
   cts:punctuation('*'), cts:punctuation('?'));
 declare variable $TOKS-WORD-JOIN := (
@@ -207,7 +209,10 @@ as element()*
       xdmp:describe($list), xdmp:describe($prepend))),
   if (count($list) lt $min
     and not($list instance of xs:string)) then $list
-  else element { $name } { $prepend, $list }
+  else element { $name } {
+    $prepend,
+    $list
+  }
 };
 
 declare private function p:maybe-wrap(
@@ -250,6 +255,20 @@ as element()*
     if (count($expr/*, 2) gt 1) then $expr
     else $expr/*)
   default return $expr
+};
+
+declare private function p:weight($tok as cts:token)
+as attribute(weight)?
+{
+  if (not($tok castable as xs:integer)) then ()
+  else attribute weight { xs:integer($tok) }
+};
+
+declare private function p:weight()
+as attribute(weight)?
+{
+  if (not(p:peek() = $TOKS-WEIGHT)) then ()
+  else p:weight(p:next(2)[2])
 };
 
 declare private function p:word($tok as cts:token?, $next as cts:token?)
@@ -301,10 +320,12 @@ as element()?
     ('literal:', 'tok', $tok, 'next', $next)),
   p:maybe-wrap(
     'literal',
+    1,
     if (empty($tok)) then ()
     else if ($tok eq $TOK-SPACE) then p:literal($next, p:next())
     else if ($tok eq $TOK-QUOTE) then p:quoted-word($tok, $next)
-    else p:word($tok, $next))
+    else p:word($tok, $next),
+    p:weight())
 };
 
 declare private function p:field-op(
@@ -500,7 +521,7 @@ as element()?
       p:next(), p:next())
     (: new infix operator - finalize this one and hand it off :)
     else p:infix(
-      $tok,
+      p:infix-op($tok, $next),
       (p:infix-expr($op, $stack), p:group($next, p:next())),
       p:next(), p:next()))
   (: no following op, so end it - stack size may be gt 1 :)

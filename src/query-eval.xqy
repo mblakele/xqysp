@@ -61,9 +61,11 @@ as cts:query?
    :)
   if (empty($list)) then cts:element-query($qnames, cts:and-query(()))
   else if ($op = ('>', '>=', '<', '<=')) then cts:element-range-query(
-    $qnames, $op, $list)
-  else if ($op eq '=') then cts:element-value-query($qnames, $list)
-  else cts:element-word-query($qnames, $list)
+    $qnames, $op, $list, (), ($list/@weight)[1])
+  else if ($op eq '=') then cts:element-value-query(
+    $qnames, $list, (), ($list/@weight)[1])
+  else cts:element-word-query(
+    $qnames, $list, (), ($list/@weight)[1])
 };
 
 declare function qe:eval($n as element())
@@ -82,7 +84,7 @@ as cts:query?
     if (count($n/*, 2) lt 2) then qe:eval($n/*)
     else cts:and-query(qe:eval($n/*)))
   (: NB - interesting literals should be handled by the cases above  :)
-  case element(p:literal) return cts:word-query($n)
+  case element(p:literal) return cts:word-query($n, (), $n/@weight)
   case element(p:root) return (
     if (count($n/*, 2) lt 2) then qe:eval($n/*)
     else cts:and-query(qe:eval($n/*)))

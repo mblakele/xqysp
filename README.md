@@ -20,9 +20,10 @@ Here is a rough cut at the BNF
     term ::= prefixOp? (field fieldOp)? (group | literal)
     field ::= (letter | "_")+
     fieldOp ::= [":" | "=" | ">" | ">=" | "<" | "<=" | "!" | "!="]
-    literal ::= word | quoted_words
+    literal ::= (word | quoted_words) weight?
     quoted_words ::= '"' word (" " word)* '"'
     word ::= (letter | digit | "_")+
+    weight ::= ^digit+
     number ::= digit+
     letter ::= [A-Za-z]
     digit ::= [0-9]
