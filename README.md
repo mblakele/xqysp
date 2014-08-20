@@ -53,7 +53,7 @@ If you find problems, please provide a test case.
 
 License
 ---
-Copyright (c) 2011-2012 Michael Blakeley. All Rights Reserved.
+Copyright (c) 2011-2014 Michael Blakeley. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
