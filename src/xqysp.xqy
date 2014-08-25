@@ -271,18 +271,29 @@ as attribute(weight)?
   else p:weight(p:next(2)[2])
 };
 
-declare private function p:word($tok as cts:token?, $next as cts:token?)
+declare private function p:word(
+  $tok as cts:token?,
+  $next as cts:token?)
 as xs:string?
 {
   if (not($DEBUG)) then () else p:debug-state(
     ('word:', 'tok', $tok, 'next', $next,
-      'join', ($next = $TOKS-WORD-JOIN))),
+      'join', ($tok = $TOKS-WILDCARD
+        or $next instance of cts:word
+        or $next = $TOKS-WORD-JOIN))),
   if (empty($tok)) then ()
   else if (not($tok instance of cts:word or $tok = $TOKS-WILDCARD)) then (
     if (not($DEBUG)) then () else p:debug-state(('word: skip', $tok)),
     p:word($next, p:next()))
   else if (empty($next)) then $tok
-  else if ($tok = $TOKS-WILDCARD or $next = $TOKS-WORD-JOIN) then string-join(
+  (: Join if there is a leading wildcard, following word,
+   : or following join token.
+   : Sequences of cts:word without whitespace
+   : can happen if the tokenization class changes mid-word.
+   :)
+  else if ($tok = $TOKS-WILDCARD
+    or $next instance of cts:word
+    or $next = $TOKS-WORD-JOIN) then string-join(
     ($tok,
       if (not($DEBUG)) then () else p:debug-state('word: next-until'),
       p:next-until(
