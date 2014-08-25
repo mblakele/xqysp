@@ -858,6 +858,18 @@
     <expr>p:parse('foo:bar^3')</expr>
   </unit>
 
+  <unit note="Changing tokenizer class does not break words">
+    <result>
+      <root xmlns="com.blakeley.xqysp">
+        <literal>fεb</literal>
+      </root>
+    </result>
+    <expr>
+      p:parse('fεb')
+      ! document { . }/*
+    </expr>
+  </unit>
+
   <unit note="qe literal with weight">
     <result>
       <cts:word-query
