@@ -44,6 +44,7 @@
     <result>
       <p:root>
         <p:literal>foo</p:literal>
+        <p:meta warning="unterminated group"/>
         <p:literal>bar</p:literal>
       </p:root>
     </result>
@@ -70,10 +71,29 @@
     <expr>p:parse("foo) bar")</expr>
   </unit>
 
-  <unit note="Garbage input - unterminated quote">
+  <unit note="Garbage input - overquoted">
     <result>
       <p:root>
         <p:literal>foo</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse('""foo')</expr>
+  </unit>
+
+  <unit note="Garbage input - unterminated quote">
+    <result>
+      <p:root>
+        <p:literal warning="unterminated quote">foo</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse('"foo')</expr>
+  </unit>
+
+    <unit note="Garbage input - random punctuation">
+    <result>
+      <p:root>
+        <p:literal>foo</p:literal>
+        <p:meta warning="unterminated quote"/>
       </p:root>
     </result>
     <expr>p:parse("foo)""")</expr>
@@ -604,7 +624,7 @@
   <unit note="Unterminated quoted phrase search">
     <result>
       <p:root>
-        <p:literal>foo bar</p:literal>
+        <p:literal warning="unterminated quote">foo bar</p:literal>
       </p:root>
     </result>
     <expr>p:parse('"foo bar')</expr>

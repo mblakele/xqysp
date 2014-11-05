@@ -120,8 +120,9 @@ as empty-sequence()
 declare function p:debug-state($label as xs:anyAtomicType+)
 as empty-sequence()
 {
-  if (not($DEBUG)) then () else
-  p:debug(($label, $X, $TOKS-COUNT,
+  if (not($DEBUG)) then () else p:debug(
+    ($label,
+      '[debug-state]', concat($X, '/', $TOKS-COUNT),
       let $count := 1 + $TOKS-COUNT - $X
       return xdmp:describe(
         subsequence($TOKS, $X, $count), $TOKS-COUNT)))
@@ -146,6 +147,12 @@ declare function p:error($code as xs:string)
   p:error($code, ())
 };
 
+declare function p:warning($message as xs:string)
+ as attribute(warning)
+{
+  attribute warning { $message }
+};
+
 declare private function p:empty() as xs:boolean
 {
   $X gt $TOKS-COUNT
@@ -156,11 +163,11 @@ declare private function p:has-next() as xs:boolean
   $X le $TOKS-COUNT
 };
 
-(: TODO reimplement next without skip and peek? :)
+(: This unrolls code from skip and peek. :)
 declare private function p:next($n as xs:integer) as cts:token*
 {
-  p:peek($n),
-  p:skip($n)
+  subsequence($TOKS, $X, $n),
+  xdmp:set($X, $n + $X)
 };
 
 declare private function p:next() as cts:token? { p:next(1) };
@@ -179,14 +186,16 @@ declare private function p:rewind($n as xs:integer) as empty-sequence()
 
 declare private function p:rewind() as empty-sequence() { p:rewind(1) };
 
-declare private function p:skip($n as xs:integer) as cts:token*
+declare private function p:skip($n as xs:integer) as empty-sequence()
 {
   xdmp:set($X, $n + $X)
 };
 
 declare private function p:skip() as cts:token? { p:skip(1) };
 
-declare private function p:next-until($tok as cts:token?, $halt as cts:token+)
+declare private function p:next-until(
+  $tok as cts:token?,
+  $halt as cts:token+)
 as cts:token*
 {
   if (not($DEBUG)) then () else p:debug-state(
@@ -205,14 +214,14 @@ declare private function p:maybe-wrap(
 as element()*
 {
   if (not($DEBUG)) then () else p:debug-state(
-    ('maybe-wrap:', $name, $min,
-      xdmp:describe($list), xdmp:describe($prepend))),
+    ('maybe-wrap:', $name, 'min', $min,
+      'list', xdmp:describe($list), 'prepend', xdmp:describe($prepend))),
   if (count($list) lt $min
-    and not($list instance of xs:string)) then $list
-  else element { $name } {
-    $prepend,
-    $list
-  }
+    and not($list instance of xs:string)) then (
+    (: Preserve the prepend nodes, some of which may be attributes. :)
+    if (empty($prepend)) then () else element meta { $prepend },
+    $list)
+  else element { $name } { $prepend, $list }
 };
 
 declare private function p:maybe-wrap(
@@ -308,17 +317,20 @@ as xs:string?
 };
 
 declare private function p:quoted-word(
-  $tok as cts:token, $next as cts:token?)
+  $tok as cts:token,
+  $next as cts:token?)
 as xs:string?
 {
   if (not($DEBUG)) then () else p:debug-state(
-    ('quoted-word:', $tok, 'next', $next)),
+    ('quoted-word:', $tok, 'next', xdmp:describe($next))),
   (: TODO optimize out this assertion? :)
   if (not($tok = $TOK-QUOTE)) then p:error(
     'UNEXPECTED', ('not a quote', $tok))
-  else if (empty($next) or $next eq $TOK-QUOTE) then ()
+  else if (empty($next)) then ()
+  (: Surface the end quote so the caller can verify it. :)
+  else if ($next eq $TOK-QUOTE) then p:rewind()
   else string-join(
-    ($next, p:next-until(p:next(), $TOK-QUOTE), p:skip()),
+    ($next, p:next-until(p:next(), $TOK-QUOTE)),
     '')
 };
 
@@ -329,14 +341,22 @@ as element()?
 {
   if (not($DEBUG)) then () else p:debug-state(
     ('literal:', 'tok', $tok, 'next', $next)),
-  p:maybe-wrap(
+  if (empty($tok)) then ()
+  else if ($tok eq $TOK-SPACE) then p:literal($next, p:next())
+  else if ($tok instance of cts:punctuation
+    and not($tok = ($TOK-QUOTE, $TOKS-WILDCARD))) then p:literal($next, p:next())
+  else p:maybe-wrap(
     'literal',
     1,
-    if (empty($tok)) then ()
-    else if ($tok eq $TOK-SPACE) then p:literal($next, p:next())
-    else if ($tok eq $TOK-QUOTE) then p:quoted-word($tok, $next)
+    if ($tok eq $TOK-QUOTE) then p:quoted-word($tok, $next)
     else p:word($tok, $next),
-    p:weight())
+    (p:weight(),
+      (: Generate any warnings.
+       : As a side-effect of handling TOK-QUOTE, skip any end-quote.
+       :)
+      (if ($tok eq $TOK-QUOTE and empty(p:next())) then 'unterminated quote'
+        else ())
+      ! p:warning(.)))
 };
 
 declare private function p:field-op(
@@ -366,14 +386,14 @@ as element()?
 };
 
 declare private function p:field(
-  $literal as element(),
+  $literal as element()?,
   $tok as cts:token?,
   $next as cts:token?)
 as element()?
 {
   (: literal is the field name, tok is the operator, and next is the value :)
   if (not($DEBUG)) then () else p:debug-state(
-    ('field:', 'literal', $literal, 'tok', $tok, 'next', $next)),
+    ('field#3:', 'literal', $literal, 'tok', $tok, 'next', $next)),
   if (empty($tok)) then $literal
   (: empty $next is ok :)
   else if ($tok eq $TOK-SPACE) then (
@@ -394,6 +414,8 @@ declare private function p:field(
   $next as cts:token?)
 as element()?
 {
+  if (not($DEBUG)) then () else p:debug-state(
+    ('field#2:', 'tok', $tok, 'next', $next)),
   p:field(
     p:literal($tok, $next),
     p:next(),
@@ -423,7 +445,7 @@ as element()?
 declare private function p:group(
   $tok as cts:token?,
   $next as cts:token?)
-as element()?
+as element()*
 {
   if (not($DEBUG)) then () else p:debug-state(
     ('group:', $tok, 'next', $next)),
@@ -436,7 +458,12 @@ as element()?
     'prefix', $tok, p:group($next, p:next()))
   (: start of group :)
   else if ($tok eq $TOK-GROUP-START) then p:maybe-wrap(
-    'group', p:expr($next, p:next(), $TOK-GROUP-END))
+    'group', 2, p:expr($next, p:next(), $TOK-GROUP-END),
+    (if (not($DEBUG) ) then () else p:debug-state(
+        ('group: ok', 'next', xdmp:describe(p:peek()),
+          p:peek() eq $TOK-GROUP-END)),
+      if (p:next() eq $TOK-GROUP-END) then ()
+      else p:warning('unterminated group')))
   (: just a term after all :)
   else p:term($tok, $next)
 };
@@ -472,11 +499,12 @@ declare private function p:infix-empty-op(
   $stack as element()*,
   $tok as cts:token?,
   $next as cts:token?)
-as element()?
+as element()*
 {
   if (not($DEBUG)) then () else p:debug-state(
     ('infix-empty-op:',
-      'stack', count($stack), 'tok', $tok, 'next', $next))
+      'stack', count($stack),
+      'tok', xdmp:describe($tok), 'next', xdmp:describe($next)))
   ,
   if ($tok = $TOKS-INFIX) then p:infix(
     p:infix-op($tok, $next),
@@ -495,12 +523,12 @@ declare private function p:infix(
   $stack as element()*,
   $tok as cts:token?,
   $next as cts:token?)
-as element()?
+as element()*
 {
   if (not($DEBUG)) then () else p:debug-state(
     ('infix:',
-      'stack', count($stack), 'op', xdmp:describe($op),
-      'tok', $tok, 'next', $next)),
+      'op', xdmp:describe($op), 'stack', count($stack),
+      'tok', xdmp:describe($tok), 'next', xdmp:describe($next))),
   (:
    : prefixOp ::= "+" | "-" | "~" | "NOT"
    : infixExpr ::= (term | group) " " infixOp " " (term | group)
@@ -549,16 +577,20 @@ declare private function p:expr(
 as element()*
 {
   if (not($DEBUG)) then () else p:debug-state(
-    ('expr:', 'tok', $tok, 'halt', $halt)),
+    ('expr:', 'tok', xdmp:describe($tok),
+      'next', xdmp:describe($next),
+      'halt', xdmp:describe($halt))),
   (: halt recursion? :)
   if (empty($tok)) then (
-      if (not($DEBUG)) then () else p:debug-state(('expr empty')))
+    if (not($DEBUG)) then () else p:debug-state(('expr empty')))
   else if ($tok = $halt) then (
     if (not($DEBUG)) then () else p:debug-state(('expr found halt', $tok)),
-    p:rewind())
+    p:rewind(2))
   (: expr ::= group | infixExpr | term :)
   else if ($tok eq $TOK-SPACE) then p:expr($next, p:next(), $halt)
-  else if (empty($next)) then p:literal($tok, ())
+  else if (empty($next)) then (
+    p:literal($tok, $next),
+    if (empty($halt)) then () else p:rewind(2))
   else (
     p:infix((), (), $tok, $next)
     ,
@@ -572,8 +604,7 @@ as element()*
 declare function p:parse($str as xs:string)
 as element()?
 {
-  if (not($DEBUG)) then () else p:debug-state(
-    ('parse: START', $str)),
+  if (not($DEBUG)) then () else p:debug(('parse', $str)),
   xdmp:set($TOKS, cts:tokenize(normalize-space($str))),
   xdmp:set($TOKS-COUNT, count($TOKS)),
   xdmp:set($X, 1),
