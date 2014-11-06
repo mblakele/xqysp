@@ -599,6 +599,22 @@
     <expr>p:parse('"foo" , "bar"')</expr>
   </unit>
 
+  <unit note="So-called 'smart' quotes">
+    <result>
+      <root xmlns="com.blakeley.xqysp">
+        <literal>cat</literal>
+        <expression op="OR" type="infix">
+          <literal>dog</literal>
+          <literal>rat</literal>
+        </expression>
+      </root>
+    </result>
+    <expr>
+      'cat (dog OR “rat”)'
+      ! p:parse(.)
+    </expr>
+  </unit>
+
   <unit note="Punctuation-sensitive search">
     <result>
       <p:root>

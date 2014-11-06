@@ -605,7 +605,11 @@ declare function p:parse($str as xs:string)
 as element()?
 {
   if (not($DEBUG)) then () else p:debug(('parse', $str)),
-  xdmp:set($TOKS, cts:tokenize(normalize-space($str))),
+  xdmp:set(
+    $TOKS,
+    (: Handle "smart quotes" and other annoyances. :)
+    cts:tokenize(
+      translate(normalize-space($str), '&#x201c;&#x201d;', '""'))),
   xdmp:set($TOKS-COUNT, count($TOKS)),
   xdmp:set($X, 1),
   (: return an empty sequence if the output tree is empty :)
