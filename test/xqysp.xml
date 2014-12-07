@@ -117,6 +117,24 @@
     <expr>p:parse("foo?bar*")</expr>
   </unit>
 
+  <unit note="Doubled wildcard">
+    <result>
+      <p:root>
+        <p:literal>fubar**</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse("fubar**")</expr>
+  </unit>
+
+  <unit note="Doubled wildcard">
+    <result>
+      <p:root>
+        <p:literal>fubar?*</p:literal>
+      </p:root>
+    </result>
+    <expr>p:parse("fubar?*")</expr>
+  </unit>
+
   <unit note="Leading wildcard splat">
     <result>
       <p:root>
@@ -203,6 +221,18 @@
       </p:root>
     </result>
     <expr>p:parse("foo AND bar OR baz")</expr>
+  </unit>
+
+  <unit note="a, AND b (punctuation)">
+    <result>
+      <p:root>
+        <p:expression type="infix" op="AND">
+          <p:literal>foo,</p:literal>
+          <p:literal>bar</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("foo, AND bar")</expr>
   </unit>
 
   <unit note="Alternative syntax for or-terms search">
