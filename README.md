@@ -16,7 +16,7 @@ Here is a rough cut at the BNF
     group ::= prefixOp? '(' expr* ')'
     prefixOp ::= "+" | "-" | "~" | "NOT"
     infixExpr ::= (term | group) " " infixOp " " (term | group)
-    infixOp ::= "*" | "OR" | "|" | "AND"
+    infixOp ::= "*" | "OR" | "|" | "AND" | "ANDNOT" | "NOTIN"
     term ::= prefixOp? (field fieldOp)? (group | literal)
     field ::= (letter | "_")+
     fieldOp ::= [":" | "=" | ">" | ">=" | "<" | "<=" | "!" | "!="]

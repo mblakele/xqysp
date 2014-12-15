@@ -27,27 +27,6 @@ declare default function namespace "http://www.w3.org/2005/xpath-functions";
 declare default element namespace "com.blakeley.xqysp";
 
 (:
- : BNF - rough guide
- :
- : L ::= expr*
- : expr ::= group | infixExpr | term
- : group ::= prefixOp? '(' expr* ')'
- : prefixOp ::= "+" | "-" | "~" | "NOT"
- : infixExpr ::= (term | group) " " infixOp " " (term | group)
- : infixOp ::= "*" | "OR" | "|" | "AND"
- : term ::= prefixOp? (field fieldOp)? (group | literal)
- : field ::= (letter | "_")+
- : fieldOp ::= [":" | "=" | ">" | ">=" | "<" | "<=" | "!" | "!="]
- : literal ::= (word | quoted_words) weight?
- : quoted_words ::= '"' word (" " word)* '"'
- : word ::= (letter | digit | "_")+
- : weight ::= ^digit+
- : number ::= digit+
- : letter ::= [A-Za-z]
- : digit ::= [0-9]
- :)
-
-(:
  : XML output
  :
  : root - root element, equivalent to L in BNF
@@ -66,6 +45,7 @@ declare private variable $TOKS-COUNT as xs:integer := count($TOKS);
 declare private variable $X as xs:integer := -1;
 
 declare variable $TOK-AND := cts:word('AND');
+declare variable $TOK-ANDNOT := cts:word('ANDNOT');
 declare variable $TOK-APOS := cts:punctuation("'");
 declare variable $TOK-CARAT := cts:punctuation('^');
 declare variable $TOK-GROUP-START := cts:punctuation('(');
@@ -73,6 +53,7 @@ declare variable $TOK-GROUP-END := cts:punctuation(')');
 declare variable $TOK-HYPHEN := cts:punctuation('-');
 declare variable $TOK-NEAR := cts:word('NEAR');
 declare variable $TOK-NOT := cts:word('NOT');
+declare variable $TOK-NOTIN := cts:word('NOTIN');
 declare variable $TOK-ONEAR := cts:word('ONEAR');
 declare variable $TOK-OR := cts:word('OR');
 declare variable $TOK-QUOTE := cts:punctuation('"');
@@ -88,11 +69,14 @@ declare variable $TOKS-INEQ := (
 declare variable $TOKS-INEQ-VALID := (
   $TOKS-INEQ,
   cts:punctuation('!='), cts:punctuation('>='), cts:punctuation('<=')) ;
-declare variable $TOKS-INFIX := ($TOK-AND, $TOK-NEAR, $TOK-ONEAR, $TOKS-OR);
+declare variable $TOKS-INFIX := (
+	$TOK-AND, $TOK-ANDNOT, $TOK-NOTIN,
+	$TOK-NEAR, $TOK-ONEAR, $TOKS-OR);
 declare variable $TOKS-OP-JOIN := (cts:punctuation('/'));
 declare variable $TOKS-OR := (cts:punctuation('|'), cts:word('OR'));
 declare variable $TOKS-PREFIX := (
-  $TOK-NOT, $TOK-HYPHEN, cts:punctuation('+'), cts:punctuation('~'));
+  $TOK-NOT, $TOK-HYPHEN,
+	cts:punctuation('+'), cts:punctuation('~'));
 declare variable $TOKS-WEIGHT := ($TOK-CARAT) ;
 declare variable $TOKS-WILDCARD := (
   cts:punctuation('*'), cts:punctuation('?'));

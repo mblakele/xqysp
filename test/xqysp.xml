@@ -984,4 +984,66 @@
     <expr>document { qe:parse('foo &gt; 17^3') }/*</expr>
   </unit>
 
+  <unit note="And-not term (ANDNOT)">
+    <result>
+      <p:root>
+        <p:expression type="infix" op="ANDNOT">
+          <p:literal>foo</p:literal>
+          <p:literal>bar</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("foo ANDNOT bar")</expr>
+  </unit>
+
+  <unit note="Not-in query (ANDNOT)">
+    <result>
+      <cts:and-not-query
+          xmlns:cts="http://marklogic.com/cts" xmlns="">
+        <cts:positive>
+					<cts:word-query>
+						<cts:text xml:lang="en">foo</cts:text>
+					</cts:word-query>
+				</cts:positive>
+				<cts:negative>
+					<cts:word-query>
+						<cts:text xml:lang="en">bar</cts:text>
+					</cts:word-query>
+				</cts:negative>
+      </cts:and-not-query>
+    </result>
+    <expr>document { qe:parse("foo ANDNOT bar") }/*</expr>
+  </unit>
+
+  <unit note="Not-in term (NOTIN)">
+    <result>
+      <p:root>
+        <p:expression type="infix" op="NOTIN">
+          <p:literal>foo</p:literal>
+          <p:literal>bar</p:literal>
+        </p:expression>
+      </p:root>
+    </result>
+    <expr>p:parse("foo NOTIN bar")</expr>
+  </unit>
+
+  <unit note="Not-in query (NOTIN)">
+    <result>
+      <cts:not-in-query
+          xmlns:cts="http://marklogic.com/cts" xmlns="">
+        <cts:positive>
+					<cts:word-query>
+						<cts:text xml:lang="en">foo</cts:text>
+					</cts:word-query>
+				</cts:positive>
+				<cts:negative>
+					<cts:word-query>
+						<cts:text xml:lang="en">bar</cts:text>
+					</cts:word-query>
+				</cts:negative>
+      </cts:not-in-query>
+    </result>
+    <expr>document { qe:parse("foo NOTIN bar") }/*</expr>
+  </unit>
+
 </suite>
